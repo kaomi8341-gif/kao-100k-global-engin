@@ -1,6 +1,5 @@
-
 import os, secrets
-from flask import Flask, render_template, redirect, request, session, jsonify
+from flask import Flask, render_template_string, redirect, request, session, jsonify
 import requests
 from urllib.parse import urlencode
 
@@ -16,10 +15,25 @@ TOKEN="https://open.tiktokapis.com/v2/oauth/token/"
 USER="https://open.tiktokapis.com/v2/user/info/"
 VIDEOS="https://open.tiktokapis.com/v2/video/list/"
 
+
+def load_index_template():
+    """Load index.html from project root and return it as a template string.
+    This keeps the existing single-file layout while allowing Flask to render
+    the Jinja placeholders like {{handle}} and the configured check.
+    """
+    base=os.path.dirname(__file__)
+    path=os.path.join(base,"index.html")
+    try:
+        with open(path,encoding="utf-8") as f:
+            return f.read()
+    except Exception:
+        # Fallback minimal page if file missing
+        return "<html><body><h1>K-A-O 100K GLOBAL ENGINE</h1></body></html>"
+
 @app.get("/")
 def home():
-    return render_template("index.html",handle=HANDLE,
-        configured=bool(CLIENT_KEY and CLIENT_SECRET and REDIRECT_URI))
+    tpl=load_index_template()
+    return render_template_string(tpl,handle=HANDLE,configured=bool(CLIENT_KEY and CLIENT_SECRET and REDIRECT_URI))
 
 @app.get("/login/tiktok")
 def login():

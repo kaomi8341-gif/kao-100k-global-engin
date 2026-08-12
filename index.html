@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>K-A-O 100K GLOBAL ENGINE v5</title>
+<style>
+:root{--bg:#08090d;--p:#11151d;--line:#27303e;--txt:#f7f8fb;--mut:#98a5b6;--pink:#ff2b76;--cyan:#20e5d7;--green:#52e28b;--yellow:#ffd36a;--red:#ff657a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#15131d,#08090d 46%);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif}
+.wrap{max-width:1120px;margin:auto;padding:16px 13px 82px}.top{display:flex;justify-content:space-between;align-items:center}.logo{font-size:21px;font-weight:1000}.tiny{font-size:11px;color:var(--mut)}.pill{padding:7px 10px;border:1px solid var(--line);border-radius:99px;color:var(--cyan);font-size:12px}
+.card{background:rgba(17,21,29,.96);border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:0 15px 38px #0005}.section{margin-top:12px}
+.hero{display:grid;grid-template-columns:1.25fr .75fr;gap:11px;margin-top:14px}.hero h1{font-size:25px;margin:5px 0}.mut{color:var(--mut)}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button,a.btn{border:0;border-radius:12px;padding:11px 14px;font-weight:850;text-decoration:none;cursor:pointer}.primary{background:linear-gradient(90deg,var(--pink),#ff579d);color:white}.secondary{background:#1a2130;color:#fff;border:1px solid var(--line)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.stat span{font-size:11px;color:var(--mut)}.stat b{display:block;font-size:22px;margin-top:4px}
+.rank{font-size:32px;font-weight:1000}.good{color:var(--green)}.warn{color:var(--yellow)}.bad{color:var(--red)}
+input,select,textarea{width:100%;background:#0b1017;color:#fff;border:1px solid var(--line);border-radius:9px;padding:9px;font-size:13px}
+label{display:block;font-size:11px;color:var(--mut);margin-bottom:4px}.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.span2{grid-column:span 2}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}th{color:var(--mut)}.tablewrap{overflow:auto}.tablewrap table{min-width:1050px}
+.advice{background:#0d1219;border:1px solid var(--line);border-radius:13px;padding:12px}.advice b{font-size:13px}.advice p{margin:6px 0 0;color:var(--mut);font-size:12px;line-height:1.55}
+.plan{white-space:pre-wrap;background:#0b1017;border:1px solid var(--line);border-radius:12px;padding:13px;font-size:13px;line-height:1.7}
+.notice{border-left:3px solid var(--yellow);background:#17150e;padding:10px 12px;border-radius:9px;font-size:12px;color:#e9dfbb;line-height:1.55}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#080b10ed;border-top:1px solid var(--line);backdrop-filter:blur(12px);display:flex;justify-content:center}.nav div{width:min(1120px,100%);display:grid;grid-template-columns:repeat(4,1fr)}.nav button{background:none;color:var(--mut);padding:14px 3px;font-size:11px}.nav button.active{color:#fff}.hidden{display:none!important}
+@media(max-width:760px){.hero,.grid3{grid-template-columns:1fr}.grid4{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:1fr}.span2{grid-column:span 1}.hero h1{font-size:21px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><div><div class="logo">K-A-O 100K GLOBAL ENGINE v5</div><div class="tiny">{{handle}} / NOAの箱舟 海外配信最適化</div></div><div class="pill">GLOBAL NOA</div></div>
+
+<main id="route">
+<section class="hero">
+<div class="card">
+ <div class="tiny">GLOBAL ROUTING</div><h1>どの国へ向けて出すかをデータで決める</h1>
+ <p class="mut">TikTok Studioの国別実績を入れると、主力国・第2候補・テスト国を自動順位付けします。配信国を強制するのではなく、字幕・言語・投稿窓・反応実績から次の狙い先を決めます。</p>
+</div>
+<div class="card"><div class="tiny">PRIMARY MARKET</div><div class="rank" id="primary">未判定</div><div class="tiny" id="primaryReason">国別データを追加してください</div></div>
+</section>
+
+<section class="grid3 section">
+ <div class="card stat"><span>主力国</span><b id="m1">—</b></div>
+ <div class="card stat"><span>第2候補</span><b id="m2">—</b></div>
+ <div class="card stat"><span>テスト国</span><b id="m3">—</b></div>
+</section>
+
+<section class="card section">
+ <b>国別 TikTok Studio 実績</b>
+ <div class="tablewrap section"><table><thead><tr><th>国</th><th>言語</th><th>再生</th><th>平均視聴秒</th><th>完視聴%</th><th>シェア</th><th>新規フォロー</th><th>Qualified%</th><th>RPM円</th><th>GLOBAL SCORE</th></tr></thead><tbody id="countryRows"></tbody></table></div>
+ <div class="row section"><button class="primary" onclick="saveCountries()">保存して国を判定</button><button class="secondary" onclick="resetCountries()">国別データを初期化</button></div>
+</section>
+
+<section class="card section">
+ <b>次回の海外配信パッケージ</b><div class="plan section" id="routePlan">国別データを保存すると自動生成します。</div>
+ <div class="row section"><button class="secondary" onclick="copyText('routePlan',event)">コピー</button></div>
+</section>
+</main>
+
+<main id="prepare" class="hidden">
+<section class="card">
+ <b>NOA 投稿前・海外一括作成</b>
+ <div class="formgrid section">
+  <div><label>場面名 / CUT</label><input id="scene" placeholder="例：S2 NOA被弾"></div>
+  <div><label>動画尺（秒）</label><input id="dur" type="number" value="75"></div>
+  <div class="span2"><label>一番強い映像</label><textarea id="strong" rows="3" placeholder="例：赤レーザー直撃後、NOAが這って発信機を回収"></textarea></div>
+  <div class="span2"><label>今回伝えること</label><textarea id="meaning" rows="3" placeholder="例：任務を諦めないNOAの決意"></textarea></div>
+ </div>
+ <div class="row section"><button class="primary" onclick="makeGlobalPack()">一括作成</button></div>
+</section>
+<section class="card section hidden" id="packCard">
+ <b>GLOBAL PACKAGE</b><div class="plan section" id="globalPack"></div>
+ <div class="row section"><button class="secondary" onclick="copyText('globalPack',event)">全部コピー</button></div>
+</section>
+</main>
+
+<main id="performance" class="hidden">
+<section class="card">
+ <div class="row"><a class="btn primary" id="connect" href="/login/tiktok">TikTok接続</a><button class="secondary hidden" id="sync" onclick="syncTikTok()">最新動画取得</button></div>
+</section>
+<section class="grid4 section">
+ <div class="card stat"><span>取得動画</span><b id="vc">0</b></div>
+ <div class="card stat"><span>100K突破</span><b id="vh">0</b></div>
+ <div class="card stat"><span>最高再生</span><b id="vm">0</b></div>
+ <div class="card stat"><span>平均反応率</span><b id="ve">0%</b></div>
+</section>
+<section class="card section"><b>公開済み動画</b><div class="tablewrap section"><table><thead><tr><th>動画</th><th>再生</th><th>100K達成率</th><th>いいね</th><th>コメント</th><th>シェア</th><th>反応率</th><th>判定</th></tr></thead><tbody id="videoRows"></tbody></table></div></section>
+</main>
+
+<main id="settings" class="hidden">
+<section class="card"><b>仕様</b><div class="grid3 section">
+<div class="advice"><b>作品</b><p>NOAの箱舟。既存キャラクター・設定・世界観は変更しません。</p></div>
+<div class="advice"><b>アカウント</b><p>{{handle}}</p></div>
+<div class="advice"><b>目標</b><p>1動画100,000再生を狙う。保証値ではありません。</p></div>
+</div></section>
+<div class="notice section">TikTokの有機おすすめ配信先を外部ツールから国指定する機能ではありません。国別実績を使い、言語・字幕・投稿テスト先を選ぶ制作支援エンジンです。</div>
+{% if not configured %}<div class="notice section">TikTok Developer認証が未設定です。Replit Secretsへ Client Key / Client Secret / Redirect URI / Flask Secret を追加してください。</div>{% endif %}
+</main>
+</div>
+
+<div class="nav"><div>
+<button id="n-route" class="active" onclick="tab('route')">国AI判定</button>
+<button id="n-prepare" onclick="tab('prepare')">海外投稿作成</button>
+<button id="n-performance" onclick="tab('performance')">実績</button>
+<button id="n-settings" onclick="tab('settings')">設定</button>
+</div></div>
+
+<script>
+const CKEY="kao_country_matrix_v5";
+const defaults=[
+ ["JP","日本","日本語"],["US","アメリカ","英語"],["GB","イギリス","英語"],["CA","カナダ","英語"],
+ ["AU","オーストラリア","英語"],["PH","フィリピン","英語"],["ID","インドネシア","インドネシア語"],
+ ["BR","ブラジル","ポルトガル語"],["MX","メキシコ","スペイン語"],["FR","フランス","フランス語"],
+ ["DE","ドイツ","ドイツ語"],["TH","タイ","タイ語"]
+];
+let cm=JSON.parse(localStorage.getItem(CKEY)||"{}"), videos=[];
+const $=id=>document.getElementById(id),F=n=>Math.round(+n||0).toLocaleString("ja-JP");
+function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function tab(x){["route","prepare","performance","settings"].forEach(id=>$(id).classList.toggle("hidden",id!==x));document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));$("n-"+x).classList.add("active")}
+function ensure(){defaults.forEach(([c,n,l])=>{cm[c]=cm[c]||{code:c,name:n,lang:l,views:0,watch:0,comp:0,shares:0,follows:0,qualified:0,rpm:0}})}
+function score(x){
+ let views=+x.views||0;if(!views)return 0;
+ let shr=(+x.shares||0)/views*100, fol=(+x.follows||0)/views*100;
+ let sample=Math.min(100,Math.log10(Math.max(10,views))/5*100);
+ let watch=Math.min(100,(+x.watch||0)/45*100);
+ let comp=Math.min(100,(+x.comp||0)/50*100);
+ let share=Math.min(100,shr/2*100);
+ let follow=Math.min(100,fol/1.5*100);
+ let qual=Math.min(100,+x.qualified||0);
+ let rpm=Math.min(100,(+x.rpm||0)/1000*100);
+ return Math.round(sample*.12+watch*.20+comp*.15+share*.20+follow*.13+qual*.10+rpm*.10)
+}
+function renderCountries(){
+ ensure();
+ $("countryRows").innerHTML=defaults.map(([c,n,l])=>{let x=cm[c],s=score(x);return `<tr><td><b>${n}</b><div class="tiny">${c}</div></td><td>${l}</td>
+ <td><input data-c="${c}" data-k="views" type="number" value="${x.views||""}" placeholder="0"></td>
+ <td><input data-c="${c}" data-k="watch" type="number" step=".1" value="${x.watch||""}" placeholder="秒"></td>
+ <td><input data-c="${c}" data-k="comp" type="number" step=".1" value="${x.comp||""}" placeholder="%"></td>
+ <td><input data-c="${c}" data-k="shares" type="number" value="${x.shares||""}" placeholder="0"></td>
+ <td><input data-c="${c}" data-k="follows" type="number" value="${x.follows||""}" placeholder="0"></td>
+ <td><input data-c="${c}" data-k="qualified" type="number" step=".1" value="${x.qualified||""}" placeholder="%"></td>
+ <td><input data-c="${c}" data-k="rpm" type="number" step=".01" value="${x.rpm||""}" placeholder="円"></td><td><b>${s}</b></td></tr>`}).join("");
+ updateRoute();
+}
+function saveCountries(){
+ document.querySelectorAll("#countryRows input").forEach(i=>{cm[i.dataset.c][i.dataset.k]=Math.max(0,+i.value||0)});
+ localStorage.setItem(CKEY,JSON.stringify(cm));renderCountries()
+}
+function resetCountries(){cm={};localStorage.removeItem(CKEY);renderCountries()}
+function ranked(){ensure();return Object.values(cm).map(x=>({...x,s:score(x)})).filter(x=>x.views>0).sort((a,b)=>b.s-a.s)}
+function updateRoute(){
+ let r=ranked();
+ if(!r.length){$("primary").textContent="未判定";$("primaryReason").textContent="最低1か国の実績を入力";["m1","m2","m3"].forEach(x=>$(x).textContent="—");$("routePlan").textContent="国別データを保存すると自動生成します。";return}
+ let a=r[0],b=r[1],c=r[2];
+ $("primary").textContent=a.name;$("primaryReason").textContent=`GLOBAL SCORE ${a.s} / 言語 ${a.lang}`;
+ $("m1").textContent=a.name;$("m2").textContent=b?b.name:"データ不足";$("m3").textContent=c?c.name:"未判定";
+ $("routePlan").textContent=`【NOAの箱舟・次回海外配信ルート】
+主力国：${a.name}
+主要言語：${a.lang}
+GLOBAL SCORE：${a.s}
+
+第2候補：${b?b.name:"データ不足"}
+テスト国：${c?c.name:"データ不足"}
+
+【次回制作】
+1. 同じ映像素材から ${a.lang} 字幕版を作る
+2. 冒頭0〜3秒は説明ではなく最強映像から開始
+3. 60秒以上を狙う場合も引き伸ばさず、場面変化を維持
+4. 主力国向けタイトル・説明文を作成
+5. 主力国の現地時間で「昼テスト」「夜テスト」の2枠を記録して比較
+6. 公開後24〜72時間の視聴・シェア・フォローを国別にTikTok Studioから再入力
+7. GLOBAL SCOREを更新し、次回の国を再判定
+
+※これは有機配信国の強制指定ではなく、国別実績から次のローカライズ先を選ぶ仕組みです。`
+}
+function makeGlobalPack(){
+ let r=ranked(), target=r[0]; if(!target){alert("先に国別データを入力してください");tab("route");return}
+ let scene=$("scene").value.trim()||"NOAの箱舟",strong=$("strong").value.trim()||"このCUTで最も強い映像",meaning=$("meaning").value.trim()||"物語の核心",dur=+$("dur").value||75;
+ const languageNote={
+  "英語":"English subtitles / natural concise English",
+  "日本語":"日本語字幕",
+  "スペイン語":"Spanish subtitles",
+  "ポルトガル語":"Brazilian Portuguese subtitles",
+  "インドネシア語":"Indonesian subtitles",
+  "フランス語":"French subtitles",
+  "ドイツ語":"German subtitles",
+  "タイ語":"Thai subtitles"
+ }[target.lang]||target.lang+" subtitles";
+ let title= target.lang==="英語" ? `NOA'S ARK — ${scene}` :
+            target.lang==="日本語" ? `NOAの箱舟｜${scene}` :
+            `NOA'S ARK — ${scene}`;
+ let caption= target.lang==="英語" ? `An original sci-fi anime by K-A-O. Watch what NOA chooses next.` :
+              target.lang==="日本語" ? `K-A-O制作・オリジナルSFアニメ「NOAの箱舟」。NOAの次の選択を見届けてください。` :
+              `NOA'S ARK — Original sci-fi anime by K-A-O.`;
+ let txt=`【NOAの箱舟 GLOBAL PACKAGE】
+対象国：${target.name}
+言語：${target.lang}
+字幕仕様：${languageNote}
+予定尺：${dur}秒
+
+【0〜3秒】
+${strong}
+説明から開始しない。
+
+【3〜12秒】
+誰が・どこで・何が起きているかを最短で理解させる。
+
+【12秒〜中盤】
+${meaning}
+同じ構図を繰り返さず、場面変化を作る。
+
+【終盤】
+答えを全部出し切らず、次のCUTにつながる位置で終了。
+
+【タイトル】
+${title}
+
+【説明文】
+${caption}
+
+【作品固定】
+・作品名：NOAの箱舟
+・K-A-O original
+・既存キャラクターの容姿、役割、関係性を変更しない
+・勝手な新キャラ、新設定、新展開を入れない
+・カメラ目線禁止
+・本編の時系列を崩さない
+・別作品化しない
+
+【投稿テスト】
+A：${target.name} 現地時間の昼枠
+B：${target.name} 現地時間の夜枠
+公開後24〜72時間の国別視聴、平均視聴、完視聴、シェア、フォローを記録。
+良い方を次回優先。`;
+ $("globalPack").textContent=txt;$("packCard").classList.remove("hidden")
+}
+async function copyText(id,e){await navigator.clipboard.writeText($(id).textContent);let b=e.currentTarget,o=b.textContent;b.textContent="コピーしました";setTimeout(()=>b.textContent=o,1200)}
+async function account(){try{let r=await fetch("/api/account");if(!r.ok)throw 0;$("connect").classList.add("hidden");$("sync").classList.remove("hidden");syncTikTok()}catch(e){}}
+async function syncTikTok(){let r=await fetch("/api/videos");let d=await r.json();if(r.ok){videos=d.videos||[];renderVideos()}}
+function renderVideos(){
+ let a=videos.map(v=>{let view=+v.view_count||0,like=+v.like_count||0,com=+v.comment_count||0,sh=+v.share_count||0,eng=view?(like+com+sh)/view*100:0,p=Math.min(100,view/100000*100),label=view>=100000?"100K達成":p>=70?"あと少し":eng>=5?"伸び候補":"要改善";return {...v,view,like,com,sh,eng,p,label}}).sort((a,b)=>b.view-a.view);
+ $("vc").textContent=a.length;$("vh").textContent=a.filter(x=>x.view>=100000).length;$("vm").textContent=F(Math.max(0,...a.map(x=>x.view)));$("ve").textContent=(a.length?a.reduce((s,x)=>s+x.eng,0)/a.length:0).toFixed(1)+"%";
+ $("videoRows").innerHTML=a.map(v=>`<tr><td><b>${esc(v.title||v.video_description||"TikTok動画")}</b></td><td>${F(v.view)}</td><td>${v.p.toFixed(0)}%</td><td>${F(v.like)}</td><td>${F(v.com)}</td><td>${F(v.sh)}</td><td>${v.eng.toFixed(1)}%</td><td>${v.label}</td></tr>`).join("")||'<tr><td colspan="8" class="mut">TikTok接続後に表示します。</td></tr>'
+}
+ensure();renderCountries();account();renderVideos();
+</script></body></html>
